@@ -1,0 +1,15 @@
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# env
+.env
+
+# outputs
+output/
+
+# mac/win
+.DS_Store
+Thumbs.db

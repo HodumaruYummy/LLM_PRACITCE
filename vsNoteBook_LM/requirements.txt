@@ -1,3 +1,5 @@
 google-generativeai
 python-dotenv
 PyMuPDF
+absl-py>=2.1.0
+openai

@@ -15,28 +15,17 @@ PyMuPDF로 PDF에서 본문 텍스트를 추출하고, Google Gemini API로 요�
 
 ## 2. 빠른 시작 (GitHub Codespaces 권장)
 
-1) 이 레포를 GitHub에 푸시합니다.
-
-2) GitHub에서 **Code ▶ Create codespace on main** 클릭.
-
-3) (선택 1) Codespaces에 `.env` 파일 만들기  
-   - `.env.example`를 복사해 `.env`로 이름 변경 후 키 입력
-   ```bash
-   cp .env.example .env
-   # .env 열어서 GOOGLE_API_KEY 값 설정
-echo "export GOOGLE_API_KEY=YOUR_KEY" >> ~/.bashrc
-source ~/.bashrc
-
-(선택 2) Codespaces 시크릿 사용 (보안 권장)
-
-Codespaces 터미널에서 다음으로 영구 등록:
-
-echo "export GOOGLE_API_KEY=YOUR_KEY" >> ~/.bashrc
-source ~/.bashrc
-
-의존성 설치(자동). 자동이 안 됐다면:
-
+# 의존성 설치
 pip install -r requirements.txt
+
+# 1) --pdf 생략 → 폴더 최신 PDF 자동 선택
+python pdf_to_text_summary_gemini.py
+
+# 2) 특정 파일 지정 (공백 있으면 따옴표)
+python pdf_to_text_summary_gemini.py --pdf "초등학생을 위한 라즈베리파이.pdf"
+
+# 3) 자원 이슈가 있으면 더 보수적으로
+python pdf_to_text_summary_gemini.py --chunk-size 3000 --max-chunks 40 --sleep 0.5
 
 -->cd /workspaces/LLM_PRACITCE/vsNoteBook_LM 경로를 잘 찾아줘야함.
 

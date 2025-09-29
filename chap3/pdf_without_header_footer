@@ -1,0 +1,35 @@
+import pymupdf
+import os
+
+pdf_file_path ="LectureOT(2025-2).pdf"
+doc = pymupdf.open(pdf_file_path)
+
+header_height = 80
+footer_height = 80
+
+full_text = ''
+
+for page in doc:
+    rect = page.rect
+
+    header = page.get_text(clip=(0,0,rect.width, header_height))
+    footer = page.get_text(clip=(0,header_height, rect.width, rect.height-footer_height))
+    text = page.get_text(clip=(0, header_height, rect.width, rect.height-footer_height))
+    full_text += text+'\n------------------------------------------------\n'
+
+pdf_file_name = os.path.basename(pdf_file_path)
+pdf_file_name = os.path.splitext(pdf_file_name)[0]
+
+txt_file_path = f'output/{pdf_file_name}_with_preprocessing.txt'
+
+with open(txt_file_path, 'w', encoding='utf-8') as f:
+    f.write(full_text)
+
+
+    '''
+    header_height ↑	페이지 상단 더 많이 잘림 (헤더 많이 제거됨)
+    footer_height ↑	페이지 하단 더 많이 잘림 (푸터 많이 제거됨)
+    너무 큰 값 (예: 10000)	페이지 전체가 잘려 텍스트가 사라질 수 있음
+    0으로 설정	아무 것도 제거하지 않음
+    
+    '''

@@ -1,0 +1,106 @@
+# openai, dotenv, os, pymupdf 라이브러리를 가져옵니다.
+from openai import OpenAI
+from dotenv import load_dotenv
+import os
+import pymupdf
+import datetime  # (수정) 파일명에 현재 시간을 사용하기 위해 datetime 모듈 추가
+
+# .env 파일에서 환경 변수를 불러옵니다.
+load_dotenv()
+
+# (수정) .env 파일에서 UPSTAGE_API_KEY를 불러옵니다. 변수명을 명확하게 통일했습니다.
+api_key = os.getenv("UPSTAGE_API_KEY")
+if not api_key:
+    raise ValueError("UPSTAGE_API_KEY가 .env 파일에 설정되지 않았습니다.")
+
+def pdf_to_text(pdf_file_path: str):
+    """PDF 파일에서 텍스트를 추출하여 TXT 파일로 저장하는 함수"""
+    doc = pymupdf.open(pdf_file_path)
+    # 머리글/꼬리글 영역을 제외하고 텍스트를 추출합니다.
+    header_height = 60
+    footer_height = 60
+    full_text = ''
+    for page in doc:
+        rect = page.rect
+        # 페이지의 유효한 텍스트 영역을 잘라냅니다.
+        clip_rect = pymupdf.Rect(0, header_height, rect.width, rect.height - footer_height)
+        text = page.get_text(clip=clip_rect)
+        # 페이지 사이에 구분선을 추가합니다.
+        full_text += text + '\n\n--- 다음 페이지 ---\n\n'
+
+    # 'output' 디렉토리가 없으면 생성합니다.
+    os.makedirs('output', exist_ok=True)
+
+    # 저장할 TXT 파일 경로를 설정합니다.
+    pdf_file_name = os.path.splitext(os.path.basename(pdf_file_path))[0]
+    txt_file_path = f'output/{pdf_file_name}_preprocessed.txt'
+
+    # 추출한 텍스트를 파일에 씁니다.
+    with open(txt_file_path, 'w', encoding='utf-8') as f:
+        f.write(full_text)
+    return txt_file_path
+
+def summarize_txt_upstage(file_path: str):
+    """Upstage API를 사용하여 텍스트 파일을 요약하는 함수"""
+    client = OpenAI(
+        api_key=api_key,
+        base_url="https://api.upstage.ai/v1"
+    )
+
+    with open(file_path, 'r', encoding='utf-8') as f:
+        txt = f.read()
+
+    # Upstage API에 전달할 프롬프트입니다.
+    response = client.chat.completions.create(
+        model="solar-pro2", # 비용 효율적인 모델로 변경 (필요시 solar-pro2로 변경 가능)
+        temperature=0.5,
+        messages=[
+            {
+                "role": "system",
+                "content": "당신은 주어진 텍스트의 핵심 내용을 정확하고 간결하게 요약하는 전문 요약 봇입니다."
+            },
+            {
+                "role": "user",
+                "content": f'''
+논문의 주제, 논문의 저자, 논문의 연구방법, 논문의 결과를 요약해줘
+--- 원본 텍스트 ---
+{txt}
+'''
+            },
+            {
+                "role": "assistant",
+                "content": f'''
+아래는 어떤 논문을 요약한 요약문이야. 이를 참고해서 요약을 실시해줘
+--- 원본 텍스트 ---
+본 학술 연구는 라즈베리파이 기반 자율주행 자동차를 활용한 초등학생 대상의 인공지능 교육 캠프 프로그램 운영 방안을 제시하고 그 효과를 분석합니다. 연구의 목표는 학생들이 객체 이미지 데이터를 직접 어노테이션하고 컴퓨터 비전 기반의 인공지능을 개발하는 프로젝트를 통해 인공지능에 대한 흥미와 이해도를 높이는 것입니다. 프로그램은 블록 코딩을 사용하여 학생들의 수준에 맞추었으며, 자율주행차의 원리 이해 및 이미지 데이터 학습 과정을 포함합니다. 연구 결과는 이 8차시 교육 프로그램이 인공지능 인식, 기초 이해, 실행 및 개발 능력, 그리고 사회적 영향 영역 모두에서 긍정적인 자기 평가 점수를 얻어 교육적 효과가 높았음을 보여줍니다. 결론적으로, 이 프로그램은 초등학생들에게 피지컬 컴퓨팅의 즐거움과 함께 기계 학습 데이터 생성 및 추론 과정에 대한 이해를 제공하는 것으로 평가됩니다.
+'''
+            }            
+        ]
+    )
+
+    return response.choices[0].message.content
+
+def summarize_pdf(pdf_file_path: str, output_file_path: str):
+    """PDF 요약 프로세스를 총괄하는 함수"""
+    print(f"1. '{pdf_file_path}'에서 텍스트 추출을 시작합니다...")
+    txt_file_path = pdf_to_text(pdf_file_path)
+    print(f"   -> 텍스트 추출 완료: '{txt_file_path}'")
+
+    print(f"2. '{txt_file_path}' 파일의 요약을 시작합니다...")
+    summary = summarize_txt_upstage(txt_file_path)
+    print("   -> 요약 완료.")
+
+    with open(output_file_path, 'w', encoding='utf-8') as f:
+        f.write(summary)
+    print(f"3. 최종 요약본이 '{output_file_path}'에 저장되었습니다.")
+
+
+if __name__ == '__main__':
+    pdf_file_path = '초등학생을_위한_라즈베리파이.pdf'
+
+    # (수정) 출력 파일명을 "원본파일이름_요약본_시간.txt" 형식으로 동적 생성
+    current_time = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+    base_name = os.path.splitext(os.path.basename(pdf_file_path))[0]
+    output_file_path = f'output/{base_name}_summary_upstage_{current_time}.txt'
+
+    summarize_pdf(pdf_file_path, output_file_path)

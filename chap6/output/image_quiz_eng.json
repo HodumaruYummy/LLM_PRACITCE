@@ -1,0 +1,32 @@
+[
+    {
+        "no": 1,
+        "eng": "Which of the following descriptions of the image is incorrect?\n- (1) Three giraffes are standing in a vast field.\n- (2) The sky is colored orange and yellow by the setting sun.\n- (3) All the giraffes are looking directly at the viewer.\n- (4) Distant mountains are visible on the horizon.",
+        "img": "133893700991232898.jpg"
+    },
+    {
+        "no": 2,
+        "eng": "Which of the following descriptions of the image is incorrect?\n- (1) Sand dunes are covered with grass.\n- (2) A vast sandy area forms the foreground.\n- (3) The sky is covered with clouds, indicating overcast weather.\n- (4) Many people are sunbathing on the beach.",
+        "img": "133897221108322618.jpg"
+    },
+    {
+        "no": 3,
+        "eng": "Which of the following descriptions of the image is incorrect?\n- (1) The United States has the highest total R&D expenditure, but its R&D expenditure as a percentage of GDP is not the highest.\n- (2) South Korea has the highest R&D expenditure as a percentage of GDP among the listed countries, and that figure is 5.44%.\n- (3) Russia has the lowest R&D expenditure as a percentage of GDP among the listed countries, and that figure is 1.10%.\n- (4) Germany's R&D expenditure is higher than South Korea's, but its R&D expenditure as a percentage of GDP is higher than South Korea's.",
+        "img": "oecd_rnd_2021_large.png"
+    },
+    {
+        "no": 4,
+        "eng": "Which of the following descriptions of the image is incorrect?\n- (1) Among the listed countries, the United States has the highest R&D expenditure.\n- (2) Israel has the highest R&D expenditure as a percentage of GDP.\n- (3) South Korea's R&D expenditure as a percentage of GDP is higher than that of the United States.\n- (4) China's R&D expenditure as a percentage of GDP exceeds 3%.",
+        "img": "oecd_rnd_2021_medium.png"
+    },
+    {
+        "no": 5,
+        "eng": "Which of the following descriptions of the image is incorrect?\n- (1) The United States has the highest R&D expenditure among the listed countries.\n- (2) Russia has the lowest R&D expenditure as a percentage of GDP among the listed countries.\n- (3) South Korea has the highest R&D expenditure as a percentage of GDP.\n- (4) China's R&D expenditure exceeds 400,000 million US dollars.",
+        "img": "oecd_rnd_2022.png"
+    },
+    {
+        "no": 6,
+        "eng": "Which of the following descriptions of the image is correct?\n- (1) The United States recorded the highest figures in both R&D expenditure and R&D expenditure as a percentage of GDP.\n- (2) South Korea's R&D expenditure in 2022 exceeded 90,000 million US dollars.\n- (3) There are 5 countries with an R&D expenditure as a percentage of GDP below 3%.\n- (4) Israel's R&D expenditure as a percentage of GDP is higher than that of South Korea.",
+        "img": "oecd_rnd_2022_large.png"
+    }
+]

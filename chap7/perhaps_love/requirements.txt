@@ -1,0 +1,29 @@
+# --- Build base (setuptools 이슈 예방) ---
+setuptools>=68,<75
+wheel>=0.43
+
+# --- Core ---
+streamlit>=1.36
+python-dotenv>=1.0.1
+google-generativeai>=0.7.2
+
+# Data / Finance
+pandas>=2.2
+numpy>=1.26
+yfinance>=0.2.43
+
+# Web / Parsing
+requests>=2.32
+beautifulsoup4>=4.12
+lxml>=5.2
+python-dateutil>=2.9
+
+# Visualization
+matplotlib>=3.9
+koreanize-matplotlib>=0.1.1  # 한글 폰트 자동 설정이 필요하면 주석 해제
+
+# NLP / Summarization
+sumy>=0.11.0
+
+# Optional
+# Pillow>=10.4.0

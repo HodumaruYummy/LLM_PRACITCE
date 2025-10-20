@@ -159,7 +159,7 @@ for msg in st.session_state.chat:
                     if it.get("summary"):
                         st.caption("요약: " + it["summary"])
 
-user_q = st.chat_input("자연어로 물어보세요. (예: '현대차 2년치 분기 실적 요약', '삼성전자 최신 뉴스 보여줘')")
+user_q = st.chat_input("알고자 하는 종목을 검색해볼까요?. (예: '현대차 2년치 분기 실적 요약', '삼성전자 최신 뉴스 보여줘')")
 if user_q:
     intent = detect_intent(user_q)
     try:

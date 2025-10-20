@@ -35,7 +35,7 @@ Streamlit 웹 앱과 터미널(콘솔) 앱 두 가지 형태로 제공되며, `y
 
 > **Windows 가상환경(venv) 권장**
 > ```powershell
-> python -m venv venv
+> py -m venv .venv
 > .\.venv\Scripts\Activate.ps1
 > python -m pip install --upgrade pip
 > ```

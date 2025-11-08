@@ -1,0 +1,13 @@
+# Core
+streamlit
+python-dotenv
+pytz
+
+# LangChain & Providers
+langchain-core>=0.2.0
+langchain-google-genai>=3.0.0
+langchain-openai>=0.2.0
+
+# Optional (확장 예제에서 사용 가능)
+pydantic>=2.0.0
+yfinance

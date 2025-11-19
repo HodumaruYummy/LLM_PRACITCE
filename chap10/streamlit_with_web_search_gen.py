@@ -34,7 +34,7 @@ if not tavily_api_key:
 llm = ChatGoogleGenerativeAI(
     model="gemini-2.5-flash",
     google_api_key=google_api_key,
-    api_version="v1"
+
 )
 # ---------------------------------
 

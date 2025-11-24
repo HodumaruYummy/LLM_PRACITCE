@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 글쓰기 비판적 분석 및 논술 프로그램</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* 스크롤바 숨기기 (깔끔한 디자인을 위해) */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen p-4 md:p-8">
+
+    <div id="app" class="max-w-6xl mx-auto">
+        <h1 class="text-4xl font-extrabold text-blue-800 mb-2">비판적 문해력 훈련소 📝</h1>
+        <p class="text-lg text-gray-600 mb-6">AI가 제시한 글의 논리 오류를 찾고, 타당한 근거로 자신의 주장을 펼쳐보세요. (초등학교 6학년 대상)</p>
+        
+        <!-- Firebase 초기화 및 상태 메시지 -->
+        <div id="authStatus" class="text-sm p-3 mb-6 rounded-lg bg-yellow-100 text-yellow-800">
+            인증 및 데이터베이스 초기화 중...
+        </div>
+
+        <!-- 1단계: 주제 입력 및 AI 글 생성 요청 -->
+        <div class="bg-white p-6 rounded-xl shadow-lg mb-8 border-t-4 border-blue-500">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">1단계: 논술 주제 정하기</h2>
+            <p class="mb-3 text-gray-600">아래 주제가 무작위로 설정되었습니다. **새로운 초안을 생성**하려면 버튼을 누르세요.</p>
+            <input type="text" id="topicInput" 
+                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 mb-4 font-semibold text-lg" readonly>
+            
+            <button id="generateButton" 
+                    class="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition duration-300 shadow-md disabled:bg-gray-400">
+                AI 논술 초안 새로 생성하기
+            </button>
+        </div>
+
+        <!-- 로딩 인디케이터 -->
+        <div id="loadingIndicator" class="hidden text-center p-6 mb-8">
+            <div class="flex items-center justify-center space-x-2">
+                <div class="w-4 h-4 bg-blue-500 rounded-full animate-pulse"></div>
+                <div class="w-4 h-4 bg-blue-500 rounded-full animate-pulse delay-150"></div>
+                <div class="w-4 h-4 bg-blue-500 rounded-full animate-pulse delay-300"></div>
+                <span class="text-lg font-medium text-gray-700 ml-3">AI가 논리적 오류를 넣고 글을 쓰는 중입니다...</span>
+            </div>
+        </div>
+
+        <!-- 2단계: AI 글 비판적 분석 -->
+        <div id="analysisSection" class="grid grid-cols-1 lg:grid-cols-2 gap-8 hidden">
+            <!-- AI 생성 초안 패널 -->
+            <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-red-500">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                    <span class="mr-2">🤖 AI 논술 초안 (비판적으로 읽기)</span>
+                </h2>
+                <div id="aiEssayOutput" class="p-4 bg-red-50 border border-red-200 rounded-lg min-h-[150px] hide-scrollbar overflow-y-auto text-gray-800 leading-relaxed whitespace-pre-wrap">
+                    AI가 생성한 글이 여기에 표시됩니다.
+                </div>
+                
+                <h3 class="text-xl font-semibold mt-6 mb-3 text-red-700">📌 발견한 논리 오류/약한 근거</h3>
+                <textarea id="fallacyAnalysis" rows="4" placeholder="AI 글에서 다음 오류를 찾아 적고, 왜 잘못되었는지 설명하세요: 
+1) 출처 불명확한 통계/수치 (가짜 사실)
+2) 논리적 비약/오류 (성급한 일반화 등)
+3) 모호하거나 근거 없는 주장 (가짜 뉴스)"
+                          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 transition duration-150 mb-4"></textarea>
+
+                <h3 class="text-xl font-semibold mt-4 mb-3 text-green-700">✅ 팩트체크: 내가 찾은 타당한 근거</h3>
+                <textarea id="factCheckSources" rows="4" placeholder="AI 근거를 검증하거나, 주제에 대한 새롭고 정확한 근거를 2~3가지 이상 조사하여 출처와 함께 기록하세요."
+                          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition duration-150"></textarea>
+            </div>
+
+            <!-- 사용자 최종 논술 작성 패널 -->
+            <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-blue-500">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                    <span class="mr-2">✍️ 나의 최종 주장하는 글 작성</span>
+                </h2>
+                <p class="text-sm text-gray-500 mb-4">AI의 오류를 수정하고, 팩트체크를 거친 타당한 근거만을 사용하여 논리적인 주장 글을 완성하세요.</p>
+                <textarea id="finalEssay" rows="18" placeholder="나의 주장하는 글 (서론-본론-결론의 구조를 갖춰 작성)"
+                          class="w-full p-4 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 min-h-[400px]"></textarea>
+
+                <button id="submitButton" 
+                        class="w-full mt-4 bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700 transition duration-300 shadow-md">
+                    글쓰기 완료 및 성찰하기
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Custom Notification Box (Alert 대체) -->
+    <div id="notificationBox" class="fixed top-5 right-5 z-50 p-4 rounded-lg shadow-xl text-white transition-opacity duration-300 opacity-0 pointer-events-none" role="alert">
+        <div id="notificationMessage"></div>
+    </div>
+
+    <script type="module">
+        // Firebase 모듈 임포트
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firestore 로깅 레벨 설정 (디버깅용)
+        setLogLevel('Debug');
+
+        // 전역 변수 설정 (Canvas 환경에서 제공됨)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let app, db, auth, userId = null;
+        let isAuthReady = false;
+        let isInitialCheckComplete = false; // 초기 로드 및 데이터 확인 완료 플래그
+
+        // UI 요소
+        const authStatus = document.getElementById('authStatus');
+        const generateButton = document.getElementById('generateButton');
+        const topicInput = document.getElementById('topicInput');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const analysisSection = document.getElementById('analysisSection');
+        const aiEssayOutput = document.getElementById('aiEssayOutput');
+        const submitButton = document.getElementById('submitButton');
+        const fallacyAnalysis = document.getElementById('fallacyAnalysis');
+        const factCheckSources = document.getElementById('factCheckSources');
+        const finalEssay = document.getElementById('finalEssay');
+        const notificationBox = document.getElementById('notificationBox');
+        const notificationMessage = document.getElementById('notificationMessage');
+        
+        // 무작위 주제 목록 (교사 관련 주제 제외)
+        const TOPICS = [
+            "K-팝 데몬 헌터스: 초능력 아이돌의 필요성", 
+            "환경: 일회용품 사용을 즉시 전면 금지해야 한다", 
+            "AI: AI가 만드는 예술 작품을 인정해야 하는가?",
+            "로봇: 가정용 로봇이 모든 집안일을 대신해야 한다"
+        ];
+        
+        // 페이지 로드 시 무작위 주제 설정
+        function getRandomTopic() {
+            const randomIndex = Math.floor(Math.random() * TOPICS.length);
+            return TOPICS[randomIndex];
+        }
+
+        // 초기 주제 설정 (이전에 설정된 값이 없으면 랜덤으로)
+        if (!topicInput.value || topicInput.value === 'AI가 생성한 글이 여기에 표시됩니다.') {
+            topicInput.value = getRandomTopic();
+        }
+
+
+        // Custom Notification Function
+        function showNotification(message, type = 'success') {
+            notificationMessage.textContent = message;
+            // 초기 클래스 정리
+            notificationBox.classList.remove('opacity-0', 'pointer-events-none', 'bg-red-600', 'bg-blue-600', 'bg-green-600');
+            
+            // 타입별 색상 설정
+            if (type === 'success') {
+                notificationBox.classList.add('bg-green-600');
+            } else if (type === 'error') {
+                notificationBox.classList.add('bg-red-600');
+            } else { // info (default for non-success/error)
+                notificationBox.classList.add('bg-blue-600');
+            }
+
+            // 표시
+            notificationBox.classList.remove('opacity-0', 'pointer-events-none');
+            notificationBox.classList.add('opacity-100');
+
+            // 5초 후 사라짐
+            setTimeout(() => {
+                notificationBox.classList.remove('opacity-100');
+                notificationBox.classList.add('opacity-0', 'pointer-events-none');
+            }, 5000);
+        }
+
+
+        // Firebase 초기화 및 인증
+        async function initializeFirebase() {
+            if (firebaseConfig) {
+                try {
+                    app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+
+                    // 인증 상태 변화 리스너
+                    onAuthStateChanged(auth, async (user) => {
+                        if (user) {
+                            userId = user.uid;
+                            authStatus.textContent = `사용자 ID: ${userId} (인증 완료)`;
+                            authStatus.classList.replace('bg-yellow-100', 'bg-green-100');
+                            authStatus.classList.replace('text-yellow-800', 'text-green-800');
+                            isAuthReady = true;
+                            // 사용자 데이터 로드 및 자동 생성 트리거
+                            loadUserData(userId); 
+                        } else {
+                            // 토큰이 있으면 커스텀 토큰 로그인, 없으면 익명 로그인 시도
+                            if (initialAuthToken) {
+                                await signInWithCustomToken(auth, initialAuthToken);
+                            } else {
+                                await signInAnonymously(auth);
+                            }
+                        }
+                    });
+                } catch (error) {
+                    console.error("Firebase 초기화 또는 인증 오류:", error);
+                    authStatus.textContent = `Firebase 오류: ${error.message}`;
+                    authStatus.classList.replace('bg-yellow-100', 'bg-red-100');
+                    authStatus.classList.replace('text-yellow-800', 'text-red-800');
+                    isAuthReady = true; // 인증이 실패해도 앱 구동은 시도
+                    loadUserData(crypto.randomUUID()); // 임시 ID로 데이터 로드 시도 (실패할 가능성 높음)
+                }
+            } else {
+                authStatus.textContent = 'Firebase 설정 정보를 찾을 수 없습니다. 기능이 제한됩니다.';
+                isAuthReady = true;
+                // Firebase가 없을 경우에도 자동 생성 로직 실행
+                handleInitialGeneration(false); 
+            }
+        }
+
+        // Firestore 데이터 저장 (사용자가 작성한 분석 및 최종 글 저장)
+        async function saveUserData() {
+            if (!db || !userId) return;
+
+            const userRef = doc(db, 'artifacts', appId, 'users', userId, 'critical_essays', 'draft');
+            const data = {
+                topic: topicInput.value,
+                aiDraft: aiEssayOutput.textContent,
+                fallacyAnalysis: fallacyAnalysis.value,
+                factCheckSources: factCheckSources.value,
+                finalEssay: finalEssay.value,
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                await setDoc(userRef, data);
+                console.log("데이터 저장 완료:", data);
+            } catch (e) {
+                console.error("데이터 저장 실패:", e);
+                showNotification(`데이터 저장 실패: ${e.message}`, 'error');
+            }
+        }
+
+        // Firestore 데이터 로드 및 자동 생성 트리거
+        function loadUserData(currentUserId) {
+            if (!db) {
+                handleInitialGeneration(false); // DB 없으면 바로 자동 생성 시도
+                return;
+            }
+            const userRef = doc(db, 'artifacts', appId, 'users', currentUserId, 'critical_essays', 'draft');
+            
+            // 실시간 리스너 설정
+            onSnapshot(userRef, (docSnap) => {
+                let draftLoaded = false;
+                
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    topicInput.value = data.topic || topicInput.value; 
+                    aiEssayOutput.textContent = data.aiDraft || 'AI가 생성한 글이 여기에 표시됩니다.';
+                    fallacyAnalysis.value = data.fallacyAnalysis || '';
+                    factCheckSources.value = data.factCheckSources || '';
+                    finalEssay.value = data.finalEssay || '';
+                    
+                    if (data.aiDraft && data.aiDraft.trim() !== 'AI가 생성한 글이 여기에 표시됩니다.') {
+                        analysisSection.classList.remove('hidden');
+                        aiEssayOutput.classList.remove('text-gray-500');
+                        draftLoaded = true;
+                    }
+                    console.log("이전 데이터 로드 완료.");
+                } else {
+                    console.log("저장된 데이터 없음.");
+                }
+
+                handleInitialGeneration(draftLoaded);
+
+            }, (error) => {
+                console.error("데이터 로드 실패:", error);
+                showNotification(`데이터 로드 실패: ${error.message}`, 'error');
+                handleInitialGeneration(false); // 에러 발생 시 자동 생성 시도
+            });
+        }
+        
+        // 첫 로드 시 자동 생성 로직 처리
+        function handleInitialGeneration(draftLoaded) {
+             if (isInitialCheckComplete) return;
+
+            // 저장된 초안이 없거나 로드에 실패했을 경우에만 자동 생성 시도
+            if (!draftLoaded) {
+                // UI 렌더링을 위해 약간의 지연 후 생성 시작
+                setTimeout(() => {
+                    if (topicInput.value && generateButton.disabled === false) { 
+                        generateAIDraft(topicInput.value);
+                    }
+                }, 100);
+            }
+            isInitialCheckComplete = true; // 초기 확인 완료
+        }
+
+        // Gemini API 호출 함수 (AI 논술 초안 생성)
+        async function generateAIDraft(topic) {
+            if (!topic.trim()) {
+                showNotification('주제를 입력해주세요.', 'error');
+                return;
+            }
+
+            // UI 상태 변경
+            generateButton.disabled = true;
+            loadingIndicator.classList.remove('hidden');
+            analysisSection.classList.add('hidden');
+            aiEssayOutput.textContent = '';
+            aiEssayOutput.classList.add('text-gray-500');
+            fallacyAnalysis.value = '';
+            factCheckSources.value = '';
+            finalEssay.value = '';
+
+            // ******************************************************
+            // API Key 매개변수를 완전히 제거하고 플랫폼 자동 주입에만 의존하도록 수정
+            // ******************************************************
+            const MODEL_NAME = "gemini-2.5-flash"; 
+            // const apiKey = ""; // API 키 변수 제거
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent`; // ?key=${apiKey} 부분 제거
+
+            const systemPromptText = `
+                당신은 초등학교 6학년을 위한 글쓰기 학습을 돕는 AI 논술 작성기입니다. 
+                사용자가 제시한 주제에 대해 주장하는 글(약 250자 내외)을 작성하세요.
+                학생의 비판적 사고 훈련을 위해, 글 내용에는 다음 두 가지를 반드시 포함하세요:
+                1. 출처가 불명확하거나 **검증이 필요한 통계/수치** (가짜 사실) 1개.
+                2. 주장을 뒷받침하기에 논리적 연결이 부족하거나 **성급한 일반화 오류**에 해당하는 근거 1개. (논리적 비약)
+                글은 서론-본론-결론의 형식을 갖추고, 근거들을 명확하게 구분할 수 있도록 작성하세요.
+            `;
+            
+            const userQuery = `주제: "${topic}"에 대한 주장하는 글을 작성해 주세요.`;
+            
+            // 페이로드 구조 (role: "system"을 contents 안에 포함)
+            const payload = {
+                contents: [
+                    { role: "system", parts: [{ text: systemPromptText.trim() }] },
+                    { role: "user", parts: [{ text: userQuery }] }
+                ]
+            };
+
+            // 디버깅: 전송 페이로드 확인
+            console.log("--- DEBUG: Gemini API Request ---");
+            console.log("Model:", MODEL_NAME);
+            console.log("URL:", apiUrl);
+            console.log("Payload:", JSON.stringify(payload, null, 2));
+
+
+            const maxRetries = 5;
+            let delay = 1000;
+
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error(`API Call Failed (Status: ${response.status})`);
+                        console.error("Error Response Body:", errorText);
+
+                        if (response.status === 429 && i < maxRetries - 1) { // 429 Too Many Requests
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                            delay *= 2; // Exponential backoff
+                            continue;
+                        }
+                        
+                        // 403 에러를 포함한 기타 오류 메시지 표시
+                        const statusMessage = `API 호출 실패 (상태 코드: ${response.status}). 권한 또는 요청 구조 문제입니다.`; 
+                        aiEssayOutput.textContent = `${statusMessage}\n\n자세한 오류: ${errorText.substring(0, 200)}...`;
+                        showNotification(statusMessage, 'error');
+                        break; 
+                    }
+
+                    const result = await response.json();
+                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                    if (text) {
+                        aiEssayOutput.textContent = text.trim();
+                        analysisSection.classList.remove('hidden');
+                        aiEssayOutput.classList.remove('text-gray-500');
+                        saveUserData();
+                        showNotification('AI 초안이 성공적으로 생성되었습니다. 비판적으로 분석해 보세요.', 'info');
+                        break; // 성공 시 루프 종료
+                    } else {
+                        // 텍스트가 없거나 구조가 이상할 경우
+                        aiEssayOutput.textContent = '글 생성에 실패했습니다. 다시 시도해 주세요. (응답 내용 없음)';
+                        showNotification('글 생성 실패 (응답 문제)', 'error');
+                        break;
+                    }
+
+                } catch (error) {
+                    console.error("Gemini API 호출 중 JavaScript 오류:", error);
+                    aiEssayOutput.textContent = `글 생성 중 내부 오류가 발생했습니다: ${error.message}`;
+                    showNotification(`글 생성 내부 오류: ${error.message}`, 'error');
+                    if (i === maxRetries - 1) {
+                        console.error("최대 재시도 횟수 초과.");
+                    } else {
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        delay *= 2;
+                    }
+                }
+            }
+            
+            // UI 상태 복원
+            generateButton.disabled = false;
+            loadingIndicator.classList.add('hidden');
+        }
+
+        // 이벤트 리스너 등록
+        generateButton.addEventListener('click', () => {
+            // 새 초안 생성 버튼을 누르면 새로운 주제로 변경 후 생성 시작
+            topicInput.value = getRandomTopic(); 
+            generateAIDraft(topicInput.value);
+        });
+
+        submitButton.addEventListener('click', () => {
+            if (finalEssay.value.trim().length < 50) {
+                showNotification('최종 주장 글을 50자 이상 작성해주세요.', 'error');
+                return;
+            }
+            saveUserData();
+            showNotification('글쓰기 활동을 완료했습니다! AI 오류를 분석하고 타당한 근거를 사용하여 훌륭한 주장 글을 완성했습니다. 다른 주제로 다시 훈련해 보세요.', 'success');
+        });
+        
+        // 입력 필드 변경 시 자동 저장
+        [topicInput, fallacyAnalysis, factCheckSources, finalEssay].forEach(element => {
+            element.addEventListener('input', saveUserData);
+        });
+
+        // 초기화 함수 호출
+        initializeFirebase();
+
+        // 텍스트 영역 높이 자동 조절 (미관상)
+        function autoResizeTextarea(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = (textarea.scrollHeight) + 'px';
+        }
+
+        [fallacyAnalysis, factCheckSources, finalEssay].forEach(element => {
+            element.addEventListener('input', () => autoResizeTextarea(element));
+        });
+
+    </script>
+</body>
+</html>
